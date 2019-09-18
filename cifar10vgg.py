@@ -14,16 +14,18 @@ from absl import app
 from absl import flags
 FLAGS = flags.FLAGS
 flags.DEFINE_integer('bs', 128, 'Batch size of VGG training')
+flags.DEFINE_integer('epochs', 150, 'Num of epochs of VGG training')
 flags.DEFINE_float('lr', 0.1, 'Learning rate of VGG training')
 
 
 class cifar10vgg:
-    def __init__(self, train=True, bs=128, lr=0.1):
+    def __init__(self, train=True, bs=128, lr=0.1, epochs=150):
         self.num_classes = 10
         self.weight_decay = 0.0005
         self.x_shape = [32,32,3]
         self.batch_size = bs
         self.learning_rate = lr
+        self.epochs = epochs
 
         self.model = self.build_model()
         if train:
@@ -150,9 +152,9 @@ class cifar10vgg:
 
     def train(self,model):
         #training parameters
-        batch_size = self.batch_size
-        maxepoches = 150
-        learning_rate = self.learning_rate
+        # batch_size = self.batch_size
+        # maxepoches = 150
+        # learning_rate = self.learning_rate
         lr_decay = 1e-6
         lr_drop = 20
         # The data, shuffled and split between train and test sets:
@@ -165,7 +167,7 @@ class cifar10vgg:
         y_test = keras.utils.to_categorical(y_test, self.num_classes)
 
         def lr_scheduler(epoch):
-            return learning_rate * (0.5 ** (epoch // lr_drop))
+            return self.learning_rate * (0.5 ** (epoch // lr_drop))
         reduce_lr = keras.callbacks.LearningRateScheduler(lr_scheduler)
 
         #data augmentation
@@ -186,16 +188,16 @@ class cifar10vgg:
 
 
         #optimization details
-        sgd = optimizers.SGD(lr=learning_rate, decay=lr_decay, momentum=0.9, nesterov=True)
+        sgd = optimizers.SGD(lr=self.learning_rate, decay=lr_decay, momentum=0.9, nesterov=True)
         model.compile(loss='categorical_crossentropy', optimizer=sgd,metrics=['accuracy'])
 
 
         # training process in a for loop with learning rate drop every 25 epoches.
 
         historytemp = model.fit_generator(datagen.flow(x_train, y_train,
-                                         batch_size=batch_size),
-                            steps_per_epoch=x_train.shape[0] // batch_size,
-                            epochs=maxepoches,
+                                         batch_size=self.batch_size),
+                            steps_per_epoch=x_train.shape[0] // self.batch_size,
+                            epochs=self.epochs,
                             validation_data=(x_test, y_test)# ,callbacks=[reduce_lr]
                                           ,verbose=2)
         np_loss_history = np.array(historytemp.history['loss'])
@@ -216,7 +218,7 @@ def main(argv):
     y_train = keras.utils.to_categorical(y_train, 10)
     y_test = keras.utils.to_categorical(y_test, 10)
 
-    model = cifar10vgg(FLAGS.bs, FLAGS.lr)
+    model = cifar10vgg(bs=FLAGS.bs, lr=FLAGS.lr, epochs=FLAGS.epochs)
 
     predicted_x = model.predict(x_test)
     residuals = np.argmax(predicted_x, 1) != np.argmax(y_test, 1)
