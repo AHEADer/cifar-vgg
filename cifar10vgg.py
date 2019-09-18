@@ -1,4 +1,3 @@
-
 from __future__ import print_function
 import tensorflow.keras as keras
 from tensorflow.keras.datasets import cifar10
@@ -11,6 +10,11 @@ import numpy as np
 from tensorflow.keras.layers import Lambda
 from tensorflow.keras import backend as K
 from tensorflow.keras import regularizers
+from absl import app
+from absl import flags
+FLAGS = flags.FLAGS
+flags.DEFINE_integer('bs', 128, 'Batch size of VGG training')
+flags.DEFINE_float('lr', 0.1, 'Learning rate of VGG training')
 
 
 class cifar10vgg:
@@ -194,11 +198,17 @@ class cifar10vgg:
                             epochs=maxepoches,
                             validation_data=(x_test, y_test)# ,callbacks=[reduce_lr]
                                           ,verbose=2)
+        np_loss_history = np.array(historytemp.history['loss'])
+        np_acc_history = np.array(historytemp.history['val_acc'])
+        np.savetxt('np_loss_history.txt', np_loss_history, delimiter=',')
+        np.savetxt('np_acc_history.txt', np_acc_history, delimiter=',')
         model.save_weights('cifar10vgg.h5')
         return model
 
 
-if __name__ == '__main__':
+def main(argv):
+    del argv
+    # print(FLAGS.bs)
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
     x_train = x_train.astype('float32')
     x_test = x_test.astype('float32')
@@ -206,13 +216,18 @@ if __name__ == '__main__':
     y_train = keras.utils.to_categorical(y_train, 10)
     y_test = keras.utils.to_categorical(y_test, 10)
 
-    model = cifar10vgg()
+    model = cifar10vgg(FLAGS.bs, FLAGS.lr)
 
     predicted_x = model.predict(x_test)
-    residuals = np.argmax(predicted_x,1)!=np.argmax(y_test,1)
+    residuals = np.argmax(predicted_x, 1) != np.argmax(y_test, 1)
 
-    loss = sum(residuals)/len(residuals)
-    print("the validation 0/1 loss is: ",loss)
+    loss = sum(residuals) / len(residuals)
+    print("the validation 0/1 loss is: ", loss)
+
+
+if __name__ == '__main__':
+    app.run(main)
+
 
 
 
