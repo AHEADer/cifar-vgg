@@ -12,11 +12,14 @@ from tensorflow.keras.layers import Lambda
 from tensorflow.keras import backend as K
 from tensorflow.keras import regularizers
 
+
 class cifar10vgg:
-    def __init__(self,train=True):
+    def __init__(self, train=True, bs=128, lr=0.1):
         self.num_classes = 10
         self.weight_decay = 0.0005
         self.x_shape = [32,32,3]
+        self.batch_size = bs
+        self.learning_rate = lr
 
         self.model = self.build_model()
         if train:
@@ -115,7 +118,6 @@ class cifar10vgg:
         model.add(Activation('softmax'))
         return model
 
-
     def normalize(self,X_train,X_test):
         #this function normalize inputs for zero mean and unit variance
         # it is used when training a model.
@@ -143,11 +145,10 @@ class cifar10vgg:
         return self.model.predict(x,batch_size)
 
     def train(self,model):
-
         #training parameters
-        batch_size = 128
-        maxepoches = 250
-        learning_rate = 0.1
+        batch_size = self.batch_size
+        maxepoches = 150
+        learning_rate = self.learning_rate
         lr_decay = 1e-6
         lr_drop = 20
         # The data, shuffled and split between train and test sets:
@@ -191,13 +192,13 @@ class cifar10vgg:
                                          batch_size=batch_size),
                             steps_per_epoch=x_train.shape[0] // batch_size,
                             epochs=maxepoches,
-                            validation_data=(x_test, y_test),callbacks=[reduce_lr],verbose=2)
+                            validation_data=(x_test, y_test)# ,callbacks=[reduce_lr]
+                                          ,verbose=2)
         model.save_weights('cifar10vgg.h5')
         return model
 
+
 if __name__ == '__main__':
-
-
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
     x_train = x_train.astype('float32')
     x_test = x_test.astype('float32')
