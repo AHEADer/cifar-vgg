@@ -1,16 +1,16 @@
 
 from __future__ import print_function
-import keras
-from keras.datasets import cifar10
-from keras.preprocessing.image import ImageDataGenerator
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation, Flatten
-from keras.layers import Conv2D, MaxPooling2D, BatchNormalization
-from keras import optimizers
+import tensorflow.keras as keras
+from tensorflow.keras.datasets import cifar10
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras import Sequential
+from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, BatchNormalization
+from tensorflow.keras import optimizers
 import numpy as np
-from keras.layers.core import Lambda
-from keras import backend as K
-from keras import regularizers
+from tensorflow.keras.layers import Lambda
+from tensorflow.keras import backend as K
+from tensorflow.keras import regularizers
 
 class cifar10vgg:
     def __init__(self,train=True):
