@@ -16,16 +16,18 @@ FLAGS = flags.FLAGS
 flags.DEFINE_integer('bs', 128, 'Batch size of VGG training')
 flags.DEFINE_integer('epochs', 150, 'Num of epochs of VGG training')
 flags.DEFINE_float('lr', 0.1, 'Learning rate of VGG training')
+flags.DEFINE_string('save_path', None, 'Log and model path')
 
 
 class cifar10vgg:
-    def __init__(self, train=True, bs=128, lr=0.1, epochs=150):
+    def __init__(self, train=True, bs=128, lr=0.1, epochs=150, save_path=None):
         self.num_classes = 10
         self.weight_decay = 0.0005
         self.x_shape = [32,32,3]
         self.batch_size = bs
         self.learning_rate = lr
         self.epochs = epochs
+        self.save_path = save_path
 
         self.model = self.build_model()
         if train:
@@ -202,9 +204,12 @@ class cifar10vgg:
                                           ,verbose=2)
         np_loss_history = np.array(historytemp.history['loss'])
         np_acc_history = np.array(historytemp.history['val_acc'])
-        np.savetxt('np_loss_history.txt', np_loss_history, delimiter=',')
-        np.savetxt('np_acc_history.txt', np_acc_history, delimiter=',')
-        model.save_weights('cifar10vgg.h5')
+        prefix = ''
+        if self.save_path is not None:
+            prefix = self.save_path
+        np.savetxt(prefix+'loss.txt', np_loss_history, delimiter=',')
+        np.savetxt(prefix+'acc.txt', np_acc_history, delimiter=',')
+        # model.save_weights('cifar10vgg.h5')
         return model
 
 
@@ -218,13 +223,13 @@ def main(argv):
     y_train = keras.utils.to_categorical(y_train, 10)
     y_test = keras.utils.to_categorical(y_test, 10)
 
-    model = cifar10vgg(bs=FLAGS.bs, lr=FLAGS.lr, epochs=FLAGS.epochs)
+    model = cifar10vgg(bs=FLAGS.bs, lr=FLAGS.lr, epochs=FLAGS.epochs, save_path=FLAGS.save_path)
 
-    predicted_x = model.predict(x_test)
-    residuals = np.argmax(predicted_x, 1) != np.argmax(y_test, 1)
+    # predicted_x = model.predict(x_test)
+    # residuals = np.argmax(predicted_x, 1) != np.argmax(y_test, 1)
 
-    loss = sum(residuals) / len(residuals)
-    print("the validation 0/1 loss is: ", loss)
+    # loss = sum(residuals) / len(residuals)
+    # print("the validation 0/1 loss is: ", loss)
 
 
 if __name__ == '__main__':
